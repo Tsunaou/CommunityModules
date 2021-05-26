@@ -17,12 +17,14 @@ import com.alibaba.fastjson.JSONObject;
 public class PartialOrderExt {
 
     @TLAPlusOperator(identifier = "PartialOrderSubset", module = "PartialOrderExt", warn = false)
-    public static SetEnumValue partialOrderSubset(final Value s) {
+    public static SetEnumValue partialOrderSubset(final Value s, final StringValue poPath) {
         /***
          * A set whose element is a poset
          *
          */
         final SetEnumValue set = (SetEnumValue) s.toSetEnum();
+        final String filepath = poPath.toUnquotedString();
+        System.out.println("Reading JSON file from " + filepath);
         if (set == null) {
             throw new EvalException(EC.TLC_MODULE_ONE_ARGUMENT_ERROR,
                     new String[]{"first", "partialOrderSubset", "set", Values.ppr(s.toString())});
@@ -33,7 +35,7 @@ public class PartialOrderExt {
 
         // Get all possible partial order in {0,1,2,...n-1} \times {0,1,2,...n-1}
         final int n = set.size();
-        ArrayList<boolean[][]> pos = PartialRelationOf(n);
+        ArrayList<boolean[][]> pos = PartialRelationOf(filepath, n);
 
         // Get all possible partial order in s \times s
         ValueVec subset = new ValueVec();
@@ -79,10 +81,9 @@ public class PartialOrderExt {
         }
     }
 
-    private static ArrayList<boolean[][]> PartialRelationOf(int n) {
+    private static ArrayList<boolean[][]> PartialRelationOf(String filepath, int n) {
         ArrayList<boolean[][]> res = new ArrayList<>();
-        String path = "D:\\Education\\Programs\\Python\\EnumeratePO\\strictPo0-4.json";
-        String s = readJsonFile(path);
+        String s = readJsonFile(filepath);
         JSONObject strictPartialOrder = JSON.parseObject(s);
         JSONArray POs = strictPartialOrder.getJSONArray(String.valueOf(n));//构建JSONArray数组
         for (Object po : POs) {
@@ -108,6 +109,7 @@ public class PartialOrderExt {
         }
         return res;
     }
+
     private static ArrayList<boolean[][]> fakeRelation2(int n) {
 //        枚举只有2个操作所有可能的partial order
         ArrayList<boolean[][]> res = new ArrayList<>();
@@ -133,6 +135,8 @@ public class PartialOrderExt {
     }
 
     public static void testExmaple() {
+        String jsonfile = "D:\\Education\\Programs\\Python\\EnumeratePO\\strictPo0-4.json";
+        StringValue path = new StringValue(jsonfile);
         ValueVec vec = new ValueVec();
         vec.addElement(IntValue.gen(0));
         vec.addElement(IntValue.gen(1));
@@ -140,10 +144,9 @@ public class PartialOrderExt {
         SetEnumValue set = new SetEnumValue(vec, true);
         PartialOrderExt.prettyPrint(set);
 
-        SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set);
+        SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set, path);
         PartialOrderExt.prettyPrint(po);
     }
-
 
 
     public static void main(String[] args) {

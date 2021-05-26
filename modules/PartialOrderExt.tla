@@ -1,7 +1,7 @@
 ------------------------------- MODULE PartialOrderExt -------------------------------
 LOCAL INSTANCE Integers
 
-PartialOrderSubset(s) == SUBSET (s \X s)
+PartialOrderSubset(s, file) == SUBSET (s \X s)
 
 =============================================================================
 

@@ -32,14 +32,14 @@
            source="1.8"
            target="1.8"
            includeantruntime="false"/>
+		<javac srcdir="${src}" destdir="${build}/modules" classpath="${tlc}/tla2tools.jar:${lib}/fastjson-1.2.76.jar"
+			   source="1.8"
+			   target="1.8"
+			   includeantruntime="false"/>
 		<javac srcdir="${src-test}" destdir="${build}/tests" classpath="${tlc}/tla2tools.jar:${lib}/junit-4.13.jar"
            source="1.8"
            target="1.8"
            includeantruntime="false"/>
-		<javac srcdir="${src-test}" destdir="${build}/tests" classpath="${tlc}/tla2tools.jar:${lib}/fastjson-1.2.76.jar"
-			   source="1.8"
-			   target="1.8"
-			   includeantruntime="false"/>
 	</target>
 
 	<target name="dist" depends="compile" description="Combine the module overwrites and the TLA+ definitions into a distribution">
@@ -58,6 +58,11 @@
 		<unzip src="lib/gson-2.8.6.jar" dest="${build}/deps">
 			<patternset>
 		        <include name="**/*.class"/>
+			</patternset>
+		</unzip>
+		<unzip src="lib/fastjson-1.2.76.jar" dest="${build}/deps">
+			<patternset>
+				<include name="**/*.class"/>
 			</patternset>
 		</unzip>
 		<jar jarfile="${dist}/CommunityModules-deps-${timestamp}.jar">
@@ -82,11 +87,11 @@
 		<java classname="tlc2.TLC" fork="true" failonerror="true">
 			<!-- Tell Java to use a garbage collector which makes TLC happy. -->
 			<jvmarg value="-XX:+UseParallelGC"/>
-			
+
 			<!-- Report execution statistics as azure-pipelien -->
 			<sysproperty key="tlc2.TLC.ide" value="azure-pipeline"/>
 			<sysproperty key="util.ExecutionStatisticsCollector.id" value="01ed03e40ba44f278a934849dd2b1038"/>
-			
+
 			<arg value="-metadir"/>
 			<arg value="${basedir}/build/states"/>
 			<arg value="-cleanup"/>
@@ -95,11 +100,12 @@
 			<classpath>
 				<pathelement location="${tlc}/tla2tools.jar" />
                 <pathelement location="${lib}/gson-2.8.6.jar" />
+				<pathelement location="${lib}/fastjson-1.2.76.jar" />
 				<!-- The jar that has just been built by the dist target. -->
 				<pathelement location="${dist}/CommunityModules-${timestamp}.jar" />
 			</classpath>
 		</java>
-		
+
 		<!-- If an assert fails, TLC will return a non-zero exit value which is makes the ant target fail. -->
 		<java classname="tlc2.TLC" fork="true" failonerror="true">
 			<!-- Tell Java to use a garbage collector which makes TLC happy. -->
@@ -109,7 +115,7 @@
 			<sysproperty key="tlc2.TLC.ide" value="azure-pipeline"/>
 			<sysproperty key="util.ExecutionStatisticsCollector.id" value="01ed03e40ba44f278a934849dd2b1038"/>
 			<sysproperty key="TLA-Library" value="${src}"/>
-			
+
 			<arg value="-metadir"/>
 			<arg value="${basedir}/build/states"/>
 			<arg value="-cleanup"/>
@@ -131,7 +137,7 @@
 			<sysproperty key="tlc2.TLC.ide" value="azure-pipeline"/>
 			<sysproperty key="util.ExecutionStatisticsCollector.id" value="01ed03e40ba44f278a934849dd2b1038"/>
 			<sysproperty key="TLA-Library" value="${src}"/>
-			
+
 			<arg value="-metadir"/>
 			<arg value="${basedir}/build/states"/>
 			<arg value="-cleanup"/>
@@ -159,7 +165,7 @@
 			<sysproperty key="tlc2.TLC.ide" value="azure-pipeline"/>
 			<sysproperty key="util.ExecutionStatisticsCollector.id" value="01ed03e40ba44f278a934849dd2b1038"/>
 			<sysproperty key="TLA-Library" value="${src}"/>
-			
+
 			<arg value="-metadir"/>
 			<arg value="${basedir}/build/states"/>
 			<arg value="-cleanup"/>
@@ -197,6 +203,7 @@
 				<pathelement location="${lib}/hamcrest-core-1.3.jar" />
 				<pathelement location="${lib}/junit-4.13.jar" />
                 <pathelement location="${lib}/gson-2.8.6.jar" />
+                <pathelement location="${lib}/fastjson-1.2.76.jar" />
 				<!-- The jar that has just been built by the dist target. -->
 				<pathelement location="${dist}/CommunityModules-${timestamp}.jar" />
 			</classpath>
@@ -207,7 +214,7 @@
 			<sysproperty key="tlc2.tool.fp.FPSet.impl" value="tlc2.tool.fp.OffHeapDiskFPSet"/>
 			<sysproperty key="util.FileUtil.milliseconds" value="true"/>
 			<sysproperty key="tlc2.tool.distributed.TLCWorker.threadCount" value="4"/>
-			<!-- The tests below can be tricked into running in a single VM by fiddling with the classloader 
+			<!-- The tests below can be tricked into running in a single VM by fiddling with the classloader
 			     to reload and thus initialize all classes for each tests. -->
 			<batchtest fork="yes" todir="${build}/tests">
 				<fileset dir="${src-test}">
