@@ -15,12 +15,14 @@ import com.alibaba.fastjson.JSONReader;
 
 public class PartialOrderExt {
 
+    /**
+     * @param s : A set
+     * @param PODirectory : a work directory of POFiles, the file you can found in https://drive.google.com/drive/folders/1Ut0lyLorh4MERIlJCtYTpaGCyerqUvrA?usp=sharing
+     * @return A set of all subset of the Cartesian Product of s and s itself(or say s \time s),
+     *          each of which represent a strict partial order(irreflexive and transitive)
+     */
     @TLAPlusOperator(identifier = "PartialOrderSubset", module = "PartialOrderExt", warn = false)
     public static SetEnumValue partialOrderSubset(final Value s, final StringValue PODirectory) {
-        /***
-         * A set whose element is a poset
-         *
-         */
         final SetEnumValue set = (SetEnumValue) s.toSetEnum();
         // Get all elements in set s and store them into an array of Value
         Value[] elems = set.elems.toArray();
@@ -73,11 +75,15 @@ public class PartialOrderExt {
         vec.addElement(IntValue.gen(1));
         vec.addElement(IntValue.gen(2));
         vec.addElement(IntValue.gen(3));
+        vec.addElement(IntValue.gen(4));
+        vec.addElement(IntValue.gen(5));
+        vec.addElement(IntValue.gen(6));
         SetEnumValue set = new SetEnumValue(vec, true);
         PartialOrderExt.prettyPrint(set);
 
         SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set, path);
-        PartialOrderExt.prettyPrint(po);
+        System.out.println(po.size());
+//        PartialOrderExt.prettyPrint(po);
     }
 
     public static void main(String[] args) {
