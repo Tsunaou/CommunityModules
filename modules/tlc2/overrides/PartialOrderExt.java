@@ -7,7 +7,12 @@ import tlc2.value.IValue;
 import tlc2.value.Values;
 import tlc2.value.impl.*;
 
+import java.io.*;
 import java.util.ArrayList;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 public class PartialOrderExt {
 
@@ -28,7 +33,7 @@ public class PartialOrderExt {
 
         // Get all possible partial order in {0,1,2,...n-1} \times {0,1,2,...n-1}
         final int n = set.size();
-        ArrayList<boolean[][]> pos = PartialOrderExt.fakeRelation2(n);
+        ArrayList<boolean[][]> pos = PartialRelationOf(n);
 
         // Get all possible partial order in s \times s
         ValueVec subset = new ValueVec();
@@ -53,6 +58,56 @@ public class PartialOrderExt {
 
     }
 
+    public static String readJsonFile(String fileName) {
+        String jsonStr = "";
+        try {
+            File jsonFile = new File(fileName);
+            FileReader fileReader = new FileReader(jsonFile);
+            Reader reader = new InputStreamReader(new FileInputStream(jsonFile), "utf-8");
+            int ch = 0;
+            StringBuffer sb = new StringBuffer();
+            while ((ch = reader.read()) != -1) {
+                sb.append((char) ch);
+            }
+            fileReader.close();
+            reader.close();
+            jsonStr = sb.toString();
+            return jsonStr;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static ArrayList<boolean[][]> PartialRelationOf(int n) {
+        ArrayList<boolean[][]> res = new ArrayList<>();
+        String path = "D:\\Education\\Programs\\Python\\EnumeratePO\\strictPo0-4.json";
+        String s = readJsonFile(path);
+        JSONObject strictPartialOrder = JSON.parseObject(s);
+        JSONArray POs = strictPartialOrder.getJSONArray(String.valueOf(n));//构建JSONArray数组
+        for (Object po : POs) {
+            JSONArray PO = (JSONArray) po;
+            if (PO.size() == 0) {
+                // 空关系
+                System.out.println("Empty Relation");
+            } else {
+                boolean[][] relation = new boolean[n][n];
+                int x, y;
+                for (Object o : PO) {
+                    JSONArray rel = (JSONArray) o;
+                    if (rel.size() != 2) {
+                        System.exit(-1);
+                    } else {
+                        x = (Integer) rel.get(0);
+                        y = (Integer) rel.get(1);
+                        relation[x][y] = true;
+                    }
+                }
+                res.add(relation);
+            }
+        }
+        return res;
+    }
     private static ArrayList<boolean[][]> fakeRelation2(int n) {
 //        枚举只有2个操作所有可能的partial order
         ArrayList<boolean[][]> res = new ArrayList<>();
@@ -77,14 +132,22 @@ public class PartialOrderExt {
         return res;
     }
 
-    public static void main(String[] args) {
+    public static void testExmaple() {
         ValueVec vec = new ValueVec();
         vec.addElement(IntValue.gen(0));
         vec.addElement(IntValue.gen(1));
+        vec.addElement(IntValue.gen(2));
         SetEnumValue set = new SetEnumValue(vec, true);
         PartialOrderExt.prettyPrint(set);
 
         SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set);
         PartialOrderExt.prettyPrint(po);
+    }
+
+
+
+    public static void main(String[] args) {
+        testExmaple();
+
     }
 }
