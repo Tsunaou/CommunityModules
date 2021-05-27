@@ -1,6 +1,7 @@
 package tlc2.overrides;
 
 
+import tlc2.TLCGlobals;
 import tlc2.output.EC;
 import tlc2.tool.EvalException;
 import tlc2.value.IValue;
@@ -23,6 +24,8 @@ public class PartialOrderExt {
      */
     @TLAPlusOperator(identifier = "PartialOrderSubset", module = "PartialOrderExt", warn = false)
     public static SetEnumValue partialOrderSubset(final Value s, final StringValue PODirectory) {
+        int originalBound = TLCGlobals.setBound;
+        TLCGlobals.setBound = 7000000;
         final SetEnumValue set = (SetEnumValue) s.toSetEnum();
         // Get all elements in set s and store them into an array of Value
         Value[] elems = set.elems.toArray();
@@ -59,8 +62,9 @@ public class PartialOrderExt {
 
         reader.endArray();
         reader.close();
-
-        return new SetEnumValue(subset, true);
+        SetEnumValue res = new SetEnumValue(subset, true);
+        TLCGlobals.setBound = originalBound;
+        return res;
     }
 
     private static void prettyPrint(IValue v) {
