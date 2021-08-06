@@ -67,12 +67,60 @@ public class PartialOrderExt {
         return res;
     }
 
+    @TLAPlusOperator(identifier = "PartialOrderSubsetNoPart", module = "PartialOrderExt", warn = false)
+    public static SetEnumValue partialOrderSubsetNoPart(final Value s, final StringValue PODirectory, final IntValue no) {
+        int originalBound = TLCGlobals.setBound;
+        TLCGlobals.setBound = 7000000;
+        final SetEnumValue set = (SetEnumValue) s.toSetEnum();
+        // Get all elements in set s and store them into an array of Value
+        Value[] elems = set.elems.toArray();
+        // Get all possible partial order in {0,1,2,...n-1} \times {0,1,2,...n-1}
+        final int n = set.size();
+        assert n==7;
+        final String filepath = PODirectory.toUnquotedString() + "strictPartialOrder" + n + "-" + no.val + ".json";
+        System.out.println("Reading JSON file from " + filepath);
+
+
+        // Get all possible partial order in s \times s
+        ValueVec subset = new ValueVec();
+
+        JSONReader reader = null;
+        try {
+            reader = new JSONReader(new FileReader(filepath));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        assert reader != null;
+        reader.startArray();
+        while (reader.hasNext()) {
+            JSONArray po = (JSONArray) reader.readObject();
+            if (po.size() > 0) {
+                ValueVec subVec = new ValueVec();
+                for (Object o : po) {
+                    JSONArray rel = (JSONArray) o;
+                    int i = (Integer) rel.get(0);
+                    int j = (Integer) rel.get(1);
+                    subVec.addElement(new TupleValue(elems[i], elems[j]));
+                }
+                subset.addElement(new SetEnumValue(subVec, true));
+            }
+        }
+
+        reader.endArray();
+        reader.close();
+        SetEnumValue res = new SetEnumValue(subset, true);
+        TLCGlobals.setBound = originalBound;
+        return res;
+    }
+
+
+
     private static void prettyPrint(IValue v) {
         System.out.println(Values.ppr(v));
     }
 
     public static void testExmaple() {
-        String jsonfile = "D:\\Education\\Programs\\Python\\EnumeratePO\\POFile\\";
+        String jsonfile = "E:\\Programs\\Python-Programs\\Event-Structure-Enumerator\\POFile\\";
         StringValue path = new StringValue(jsonfile);
         ValueVec vec = new ValueVec();
         vec.addElement(IntValue.gen(0));
@@ -85,13 +133,13 @@ public class PartialOrderExt {
         SetEnumValue set = new SetEnumValue(vec, true);
         PartialOrderExt.prettyPrint(set);
 
-        SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set, path);
+//        SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubset(set, path);
+        SetEnumValue po = (SetEnumValue) PartialOrderExt.partialOrderSubsetNoPart(set, path, IntValue.gen(1));
         System.out.println(po.size());
 //        PartialOrderExt.prettyPrint(po);
     }
 
     public static void main(String[] args) {
         testExmaple();
-
     }
 }

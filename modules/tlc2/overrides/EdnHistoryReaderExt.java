@@ -28,26 +28,23 @@ import java.util.Map;
 
 public class EdnHistoryReaderExt {
 
-    final static InternTable internTable = new InternTable(3);
-    final static UniqueString type = internTable.put("type");
-    final static UniqueString key = internTable.put("key");
-    final static UniqueString value = internTable.put("value");
-    final static UniqueString[] names = {type, key, value};
+    final static UniqueString[] names = {UniqueString.of("oid"), UniqueString.of("val"), UniqueString.of("type"), UniqueString.of("key")};
 
-    public static RecordValue newOperation(String type, String key, int value, int oid) {
+    public static RecordValue newOperation(String type, int key, int value, int oid) {
         StringValue recOpType = new StringValue(type);
-        StringValue recKey = new StringValue(key);
+        IntValue recKey = IntValue.gen(key);
         IntValue recValue = IntValue.gen(value);
         IntValue recOid = IntValue.gen(oid);
-        Value[] values = {recOpType, recKey, recValue, recOid};
+        Value[] values = {recOid, recValue, recOpType, recKey};
         return new RecordValue(names, values, false);
     }
 
-    @TLAPlusOperator(identifier = "EdnHistoryReader", module = "EdnHistoryReaderExt", warn = false)
+    @TLAPlusOperator(identifier = "EdnHistoryReaderExt", module = "EdnHistoryReaderExt", warn = false)
     public static SetEnumValue ednHistoryReaderExt(final StringValue ednHistoryFile) {
         HistoryReader reader = new HistoryReader(ednHistoryFile.toUnquotedString(), 10, true);
         try {
             History history = reader.readHistory(99999);
+            System.out.println("The max index is " + history.getLastIndex());
             // Group operations by process
             HashMap<Integer, ArrayList<HistoryItem>> historyByProcess = new HashMap<>();
             for (HistoryItem op : history.getOperations()) {
@@ -67,8 +64,9 @@ public class EdnHistoryReaderExt {
                     if (op.isWrite()) {
                         readOrWrite = "write";
                     }
-                    RecordValue operation = EdnHistoryReaderExt.newOperation(readOrWrite, op.getK(), op.getV(), op.getIndex());
+                    RecordValue operation = EdnHistoryReaderExt.newOperation(readOrWrite, Integer.parseInt(op.getK()), op.getV(), op.getIndex());
                     operations[i] = operation;
+//                    System.out.println(operation.select(new StringValue("type")));
                     i = i + 1;
                 }
                 TupleValue session = new TupleValue(operations);
@@ -94,8 +92,9 @@ public class EdnHistoryReaderExt {
     }
 
     public static void main(String[] args) {
-        String ednfile = "D:\\Education\\Programs\\Java\\Causal-Memory-Checking-Java\\src\\main\\resources\\adhoc\\paper_history_a.edn";
-        StringValue path = new StringValue(ednfile);
+        String ednfile = "D:\\Education\\Programs\\Java\\Causal-Memory-Checking-Java\\src\\main\\resources\\adhoc\\paper_history_b2.edn";
+        String ednfile2 = "C:\\Users\\Young\\Desktop\\selected-data\\selected-data\\local_failure\\mongo-causal-register-wc-_w1-rc-_local-ti-160-sd-2-cry-10-wp-0.25-rp-0.75-ops-100-node-failure_20210120\\history100_0.edn";
+        StringValue path = new StringValue(ednfile2);
         EdnHistoryReaderExt.prettyPrint(ednHistoryReaderExt(path));
     }
 }
